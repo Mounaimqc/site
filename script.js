@@ -734,4 +734,7 @@ function submitOrderForm() {
     
     // Log complet
     console.log('Commande finalisée:', commande);
+    if (typeof loadCommandes === "function") {
+    loadCommandes(); // تعاود تقرا من localStorage وتعرض
+}
 }
