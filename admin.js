@@ -1,10 +1,10 @@
 /* ==============================
-   GESTION DES COMMANDES
+   ADMIN.JS - GESTION DES COMMANDES
 ============================== */
 
 let allCommandes = [];
 
-/* ========= LOAD / SAVE ========= */
+/* ========= LOAD ========= */
 
 function loadCommandes() {
     const saved = localStorage.getItem('commandes');
@@ -14,14 +14,13 @@ function loadCommandes() {
     initializeWilayaFilter();
 }
 
-
-/* ========= DISPLAY TABLE ========= */
+/* ========= DISPLAY ========= */
 
 function displayCommandes(commandes) {
     const tbody = document.getElementById('ordersTableBody');
 
-    if (commandes.length === 0) {
-        tbody.innerHTML = `<tr><td colspan="9">Aucune commande trouvée</td></tr>`;
+    if (!commandes.length) {
+        tbody.innerHTML = `<tr><td colspan="9">Aucune commande</td></tr>`;
         return;
     }
 
@@ -50,17 +49,18 @@ function displayCommandes(commandes) {
     `).join('');
 }
 
-/* ========= DETAIL MODAL ========= */
+/* ========= DETAIL ========= */
 
 function showDetail(orderNumber) {
     const cmd = allCommandes.find(c => c.orderNumber === orderNumber);
     if (!cmd) return;
 
-    document.getElementById('detailModal').dataset.currentOrderNumber = orderNumber;
+    const modal = document.getElementById('detailModal');
+    modal.dataset.currentOrderNumber = orderNumber;
 
     document.getElementById('detailOrderNumber').textContent = cmd.orderNumber;
     document.getElementById('detailDate').textContent = formatDateTime(cmd.date);
-    document.getElementById('detailName').textContent = cmd.firstName + ' ' + cmd.lastName;
+    document.getElementById('detailName').textContent = `${cmd.firstName} ${cmd.lastName}`;
     document.getElementById('detailPhone1').textContent = cmd.phone1;
     document.getElementById('detailPhone2').textContent = cmd.phone2 || '—';
     document.getElementById('detailWilaya').textContent = cmd.wilaya;
@@ -73,7 +73,10 @@ function showDetail(orderNumber) {
 
     document.getElementById('detailItems').innerHTML = cmd.cartItems.map(i => `
         <div class="item-entry">
-            <div><strong>${i.name}</strong><br>${i.price} DA × ${i.quantity}</div>
+            <div>
+                <strong>${i.name}</strong><br>
+                ${i.price} DA × ${i.quantity}
+            </div>
             <div><strong>${(i.price * i.quantity).toFixed(2)} DA</strong></div>
         </div>
     `).join('');
@@ -82,7 +85,7 @@ function showDetail(orderNumber) {
     document.getElementById('detailShipping').textContent = cmd.shippingPrice;
     document.getElementById('detailTotal').textContent = cmd.grandTotal.toFixed(2);
 
-    document.getElementById('detailModal').classList.add('active');
+    modal.classList.add('active');
 }
 
 function closeDetail() {
@@ -90,26 +93,6 @@ function closeDetail() {
 }
 
 /* ========= STATUS ========= */
-
-function getStatusClass(status) {
-    return {
-        pending: 'status-pending',
-        accepted: 'status-accepted',
-        shipped: 'status-shipped',
-        arrived: 'status-arrived',
-        returned: 'status-returned'
-    }[status] || 'status-pending';
-}
-
-function getStatusLabel(status) {
-    return {
-        pending: '⏳ En attente',
-        accepted: '✓ Acceptée',
-        shipped: '🚚 En route',
-        arrived: '📦 Arrivée',
-        returned: '↩️ Retournée'
-    }[status] || '⏳ En attente';
-}
 
 function updateOrderStatus(newStatus) {
     const orderNumber = document.getElementById('detailModal').dataset.currentOrderNumber;
@@ -159,26 +142,17 @@ function filterCommandes() {
     const wilaya = document.getElementById('filterWilaya').value;
 
     const filtered = allCommandes.filter(c => {
-        const matchSearch =
+        return (
             c.orderNumber.toLowerCase().includes(search) ||
             c.firstName.toLowerCase().includes(search) ||
             c.lastName.toLowerCase().includes(search) ||
-            c.phone1.includes(search);
-
-        const matchType = !type || c.orderType === type;
-        const matchWilaya = !wilaya || c.wilaya === wilaya;
-
-        return matchSearch && matchType && matchWilaya;
+            c.phone1.includes(search)
+        ) &&
+        (!type || c.orderType === type) &&
+        (!wilaya || c.wilaya === wilaya);
     });
 
     displayCommandes(filtered);
-}
-
-function clearFilters() {
-    document.getElementById('searchInput').value = '';
-    document.getElementById('filterType').value = '';
-    document.getElementById('filterWilaya').value = '';
-    filterCommandes();
 }
 
 /* ========= STATS ========= */
@@ -205,14 +179,39 @@ function initializeWilayaFilter() {
 
 /* ========= UTILS ========= */
 
+function getStatusClass(status) {
+    return {
+        pending: 'status-pending',
+        accepted: 'status-accepted',
+        shipped: 'status-shipped',
+        arrived: 'status-arrived',
+        returned: 'status-returned'
+    }[status] || 'status-pending';
+}
+
+function getStatusLabel(status) {
+    return {
+        pending: '⏳ En attente',
+        accepted: '✓ Acceptée',
+        shipped: '🚚 En route',
+        arrived: '📦 Arrivée',
+        returned: '↩️ Retournée'
+    }[status] || '⏳ En attente';
+}
+
 function showNotification(msg) {
     const n = document.createElement('div');
     n.textContent = msg;
     n.style.cssText = `
-        position:fixed;top:20px;right:20px;
-        background:#27ae60;color:#fff;
-        padding:12px 18px;border-radius:5px;
+        position:fixed;
+        top:20px;
+        right:20px;
+        background:#27ae60;
+        color:#fff;
+        padding:12px 18px;
+        border-radius:5px;
         z-index:9999;
+        font-weight:bold;
     `;
     document.body.appendChild(n);
     setTimeout(() => n.remove(), 3000);
@@ -221,6 +220,14 @@ function showNotification(msg) {
 function formatDateTime(d) {
     return new Date(d).toLocaleString('fr-FR');
 }
+
+/* ========= AUTO REFRESH ========= */
+
+window.addEventListener('storage', (e) => {
+    if (e.key === 'commandes') {
+        loadCommandes();
+    }
+});
 
 /* ========= INIT ========= */
 
@@ -231,13 +238,3 @@ document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('filterType').addEventListener('change', filterCommandes);
     document.getElementById('filterWilaya').addEventListener('change', filterCommandes);
 });
-function saveCommande(commande) {
-    let commandes = JSON.parse(localStorage.getItem('commandes')) || [];
-    commandes.unshift(commande);
-    localStorage.setItem('commandes', JSON.stringify(commandes));
-
-    // ✅ تحديث ADMIN مباشرة
-    if (typeof loadCommandes === "function") {
-        loadCommandes();
-    }
-}
