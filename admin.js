@@ -14,10 +14,6 @@ function loadCommandes() {
     initializeWilayaFilter();
 }
 
-function saveCommande(commande) {
-    allCommandes.unshift(commande);
-    localStorage.setItem('commandes', JSON.stringify(allCommandes));
-}
 
 /* ========= DISPLAY TABLE ========= */
 
@@ -235,3 +231,13 @@ document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('filterType').addEventListener('change', filterCommandes);
     document.getElementById('filterWilaya').addEventListener('change', filterCommandes);
 });
+function saveCommande(commande) {
+    let commandes = JSON.parse(localStorage.getItem('commandes')) || [];
+    commandes.unshift(commande);
+    localStorage.setItem('commandes', JSON.stringify(commandes));
+
+    // ✅ تحديث ADMIN مباشرة
+    if (typeof loadCommandes === "function") {
+        loadCommandes();
+    }
+}
