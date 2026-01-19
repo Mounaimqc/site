@@ -267,11 +267,19 @@ function filterProducts() {
     loadProducts(filtered);
 }
 
+// Générer un numéro de commande simple
+function generateOrderNumber() {
+    let orderCount = localStorage.getItem('orderCount');
+    orderCount = orderCount ? parseInt(orderCount) + 1 : 1;
+    localStorage.setItem('orderCount', orderCount);
+    return '#' + String(orderCount).padStart(5, '0');
+}
+
 // Traiter la commande
 function processCheckout() {
     const cartModal = document.getElementById('cartModal');
     const confirmModal = document.getElementById('confirmModal');
-    const orderNumber = 'CMD-' + Date.now();
+    const orderNumber = generateOrderNumber();
 
     document.getElementById('orderNumber').textContent = orderNumber;
 
@@ -673,12 +681,13 @@ function submitOrderForm() {
         shippingPrice = stopDeskPrices[selectedWilaya] || 0;
     }
     
-    const orderNumber = 'CMD-' + Date.now();
+    const orderNumber = generateOrderNumber();
     const cartTotal = parseFloat(document.getElementById('totalPrice').textContent);
     const grandTotal = cartTotal + shippingPrice;
     
     const commande = {
         orderNumber: orderNumber,
+        status: 'pending',
         orderType: orderType,
         firstName: document.getElementById('firstName').value,
         lastName: document.getElementById('lastName').value,
