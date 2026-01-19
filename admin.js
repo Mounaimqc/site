@@ -20,7 +20,7 @@ function displayCommandes(commandes) {
     const tbody = document.getElementById('ordersTableBody');
     
     if (commandes.length === 0) {
-        tbody.innerHTML = '<tr class="no-orders"><td colspan="8">Aucune commande trouvée</td></tr>';
+        tbody.innerHTML = '<tr class="no-orders"><td colspan="9">Aucune commande trouvée</td></tr>';
         return;
     }
     
@@ -36,7 +36,11 @@ function displayCommandes(commandes) {
             <td>${cmd.wilaya}</td>
             <td>${cmd.phone1}</td>
             <td class="total-price">${cmd.grandTotal.toFixed(2)} DA</td>
-            <td>${formatDate(cmd.date)}</td>
+            <td>
+                <span class="status-badge-table ${getStatusClass(cmd.status || 'pending')}">
+                    ${getStatusLabel(cmd.status || 'pending')}
+                </span>
+            </td>
             <td>
                 <button class="action-btn" onclick="showDetail('${cmd.orderNumber}')">Détails</button>
             </td>
@@ -58,6 +62,11 @@ function showDetail(orderNumber) {
     document.getElementById('detailWilaya').textContent = commande.wilaya;
     document.getElementById('detailCommune').textContent = commande.commune;
     
+    // Afficher le statut
+    const status = commande.status || 'pending';
+    document.getElementById('detailStatusBadge').textContent = getStatusLabel(status);
+    document.getElementById('detailStatusBadge').className = 'status-badge-table ' + getStatusClass(status);
+    
     // Afficher les produits
     const itemsHtml = commande.cartItems.map(item => `
         <div class="item-entry">
@@ -74,11 +83,82 @@ function showDetail(orderNumber) {
     document.getElementById('detailShipping').textContent = commande.shippingPrice;
     document.getElementById('detailTotal').textContent = commande.grandTotal.toFixed(2);
     
+    // Stocker le numéro de commande pour la mise à jour du statut
+    document.getElementById('detailModal').dataset.currentOrderNumber = orderNumber;
+    
     document.getElementById('detailModal').classList.add('active');
 }
 
 function closeDetail() {
     document.getElementById('detailModal').classList.remove('active');
+}
+
+// Obtenir la classe CSS pour le statut
+function getStatusClass(status) {
+    const statusMap = {
+        'pending': 'status-pending',
+        'accepted': 'status-accepted',
+        'shipped': 'status-shipped',
+        'arrived': 'status-arrived',
+        'returned': 'status-returned'
+    };
+    return statusMap[status] || 'status-pending';
+}
+
+// Obtenir le label du statut
+function getStatusLabel(status) {
+    const statusMap = {
+        'pending': '⏳ En Attente',
+        'accepted': '✓ Acceptée',
+        'shipped': '🚚 En Route',
+        'arrived': '📦 Arrivée',
+        'returned': '↩️ Retournée'
+    };
+    return statusMap[status] || '⏳ En Attente';
+}
+
+// Mettre à jour le statut d'une commande
+function updateOrderStatus(newStatus) {
+    const orderNumber = document.getElementById('detailModal').dataset.currentOrderNumber;
+    const commande = allCommandes.find(c => c.orderNumber === orderNumber);
+    
+    if (!commande) return;
+    
+    commande.status = newStatus;
+    localStorage.setItem('commandes', JSON.stringify(allCommandes));
+    
+    // Mettre à jour l'affichage
+    document.getElementById('detailStatusBadge').textContent = getStatusLabel(newStatus);
+    document.getElementById('detailStatusBadge').className = 'status-badge-table ' + getStatusClass(newStatus);
+    
+    // Rafraîchir le tableau
+    filterCommandes();
+    
+    // Afficher une confirmation
+    showNotification(`Commande ${orderNumber} marquée comme "${getStatusLabel(newStatus).replace(/[^a-zA-Z]/g, '').toLowerCase()}"`);
+}
+
+// Afficher une notification
+function showNotification(message) {
+    const notification = document.createElement('div');
+    notification.style.cssText = `
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        background-color: #27ae60;
+        color: white;
+        padding: 15px 20px;
+        border-radius: 5px;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2);
+        z-index: 9999;
+        font-weight: bold;
+    `;
+    notification.textContent = message;
+    document.body.appendChild(notification);
+    
+    setTimeout(() => {
+        notification.remove();
+    }, 3000);
 }
 
 // Mettre à jour les statistiques
