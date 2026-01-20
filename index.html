@@ -5,6 +5,24 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Amar informatique - Vente en Ligne</title>
     <link rel="stylesheet" href="styles.css">
+    <!-- Firebase -->
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
+
+<script>
+  const firebaseConfig = {
+    apiKey: "AIzaSyAUjSJTplPn9O8pK_YU5ydsyqUQ9HVfKXo",
+    authDomain: "amar-informatique.firebaseapp.com",
+    projectId: "amar-informatique",
+    storageBucket: "amar-informatique.firebasestorage.app",
+    messagingSenderId: "568367870390",
+    appId: "1:568367870390:web:e1583c182272ecbf141117"
+  };
+
+  firebase.initializeApp(firebaseConfig);
+  const db = firebase.firestore();
+</script>
+    
 </head>
 <body>
     <!-- En-tête -->
@@ -143,16 +161,18 @@
     </div>
 
     <!-- Modal de confirmation de commande -->
-    <div class="modal" id="confirmModal">
-        <div class="modal-content">
-            <span class="close-modal">&times;</span>
-            <h2>✓ Commande Confirmée!</h2>
-            <p>Merci pour votre achat!</p>
-            <p>Numéro de commande: <strong id="orderNumber"></strong></p>
-            <p>Un email de confirmation a été envoyé.</p>
-            <button class="btn-primary" onclick="location.reload()">Continuer vos achats</button>
-        </div>
-    </div>
+   <div class="modal" id="confirmModal">
+  <div class="modal-content">
+    <span class="close-modal">&times;</span>
+    <h2>✓ Commande Confirmée!</h2>
+    <p style="font-size: 1.2rem; color: #e74c3c; font-weight: bold;">
+      Numéro de commande: <strong id="orderNumber"></strong>
+    </p>
+    <p>📸 <strong>Prenez une photo de ce numéro</strong> ou notez-le bien !</p>
+    <p>Vous pouvez le retrouver dans la page "Suivi de Commande".</p>
+    <button class="btn-primary" onclick="location.reload()">Continuer vos achats</button>
+  </div>
+</div>
 
     <footer>
         <p>&copy; 2026 Ma Boutique. Tous droits réservés.</p>
